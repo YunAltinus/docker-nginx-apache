@@ -1,0 +1,111 @@
+version: "3"
+
+networks:
+    laravel:
+
+services:
+    # PHP Service
+    app:
+        image: docker-laravel-apache
+        build:
+            context: .
+            dockerfile: docker/apache/Dockerfile
+            target: php
+            args:
+                - APP_ENV=${APP_ENV}
+        environment:
+            - APP_NAME=${APP_NAME}
+            - APP_ENV=${APP_ENV}
+            - CONTAINER_ROLE=app
+        ports:
+            - 8000:80
+            - 5173:5173
+        working_dir: /var/www/html
+        volumes:
+            - ./:/var/www/html
+        links:
+            - database
+        depends_on:
+            - database
+            - redis
+        networks:
+            - laravel
+
+    # Database Server
+    database:
+        image: mysql:8.0
+        ports:
+            - 3306:3306
+        environment:
+            - MYSQL_DATABASE=${DB_DATABASE}
+            - MYSQL_USER=${DB_USERNAME}
+            - MYSQL_PASSWORD=${DB_PASSWORD}
+            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+            - MYSQL_ALLOW_EMPTY_PASSWORD=1
+        volumes:
+            - db-data:/var/lib/mysql
+        networks:
+            - laravel
+
+    phpmyadmin:
+        image: phpmyadmin:latest
+        restart: always
+        ports:
+            - 8001:80
+        links:
+            - database
+        depends_on:
+            - database
+        environment:
+            - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+            - PMA_ARBITRARY=${PMA_ARBITRARY}
+            - PMA_HOST=${PMA_HOST}
+            - PMA_PORT=${PMA_PORT}
+            # - PMA_USER=${PMA_USER}
+            # - PMA_PASSWORD=${PMA_PASSWORD}
+        networks:
+            - laravel
+
+    redis:
+        image: redis:7-alpine
+        restart: always
+        command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD}
+        ports:
+            - 6379:6379
+        networks:
+            - laravel
+
+    redis-ui:
+        image: erikdubbelboer/phpredisadmin
+        environment:
+            - REDIS_1_HOST=${REDIS_1_HOST}
+            - REDIS_1_PORT=${REDIS_1_PORT}
+            - REDIS_1_AUTH=${REDIS_1_AUTH}
+        ports:
+            - 8002:80
+        links:
+            - redis
+        depends_on:
+            - redis
+        networks:
+            - laravel
+
+    queue:
+        image: docker-laravel-apache
+        build:
+            context: .
+            dockerfile: docker/apache/Dockerfile
+            target: php
+        environment:
+            - APP_ENV=${APP_ENV}
+            - CONTAINER_ROLE=queue
+        volumes:
+            - ./:/var/www/html
+        depends_on:
+            - redis
+            - app
+        networks:
+            - laravel
+
+volumes:
+    db-data: ~
