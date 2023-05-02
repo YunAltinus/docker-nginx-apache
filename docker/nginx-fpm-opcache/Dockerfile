@@ -1,4 +1,4 @@
-FROM php:8.1-fpm as php
+FROM php:8.1-rc-fpm-buster as php
 
 ENV PHP_OPCACHE_ENABLE=1
 ENV PHP_OPCACHE_ENABLE_CLI=0
