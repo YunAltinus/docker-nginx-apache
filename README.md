@@ -16,7 +16,7 @@ OR:
 
 Run ```docker-compose -f docker-compose.apache.yml up --force-recreate --build -d```
 
-### Ports
+## Ports
 
 Default PHP port is 8000. Connect via http://127.0.0.1:8000 or http://localhost:8000
 
