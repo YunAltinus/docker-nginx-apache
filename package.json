@@ -10,7 +10,7 @@
         "vite": "^4.3.0"
     },
     "dependencies": {
-        "@vitejs/plugin-vue": "^4.1.0",
+        "@vitejs/plugin-vue": "^4.2.0",
         "vue": "^3.2.36",
         "vue-loader": "^17.1.0"
     }
